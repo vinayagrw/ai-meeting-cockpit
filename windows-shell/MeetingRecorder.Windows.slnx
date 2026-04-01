@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="MeetingRecorder.CaptureWorker/MeetingRecorder.CaptureWorker.csproj" />
+  <Project Path="MeetingRecorder.Shared/MeetingRecorder.Shared.csproj" />
+  <Project Path="MeetingRecorder.Windows/MeetingRecorder.Windows.csproj" />
+</Solution>

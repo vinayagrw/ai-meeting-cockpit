@@ -1,0 +1,62 @@
+{
+  "manifest_version": 3,
+  "name": "Meeting Recorder",
+  "version": "0.1.0",
+  "description": "Detect browser meetings and record them in the background through a local Windows companion.",
+  "permissions": [
+    "storage",
+    "tabs",
+    "notifications",
+    "offscreen",
+    "tabCapture",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:17823/*",
+    "http://127.0.0.1:17824/*",
+    "https://meet.google.com/*",
+    "https://teams.microsoft.com/*",
+    "https://teams.live.com/*",
+    "https://*.zoom.us/*",
+    "https://app.zoom.us/*",
+    "https://*.webex.com/*"
+  ],
+  "background": {
+    "service_worker": "src/background/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://meet.google.com/*",
+        "https://teams.microsoft.com/*",
+        "https://teams.live.com/*",
+        "https://*.zoom.us/*",
+        "https://app.zoom.us/*",
+        "https://*.webex.com/*"
+      ],
+      "js": [
+        "src/shared/constants.js",
+        "src/shared/utils.js",
+        "src/shared/adapters.js",
+        "src/content/content.js"
+      ],
+      "css": [
+        "src/content/content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/offscreen/offscreen.html",
+        "src/offscreen/offscreen.js",
+        "src/shared/constants.js",
+        "src/shared/utils.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}

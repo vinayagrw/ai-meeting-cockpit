@@ -1,0 +1,208 @@
+{
+  "app": {
+    "meetingsRoot": "",
+    "logsRoot": "",
+    "pythonExecutable": "",
+    "ffmpegPath": ""
+  },
+  "windows": {
+    "enableBrowserCaptionBridge": false,
+    "useCaptureWorker": false,
+    "defaultRecordingMode": "screen-and-audio",
+    "defaultCaptureSource": "display",
+    "detection": {
+      "pollIntervalMs": 2000,
+      "promptDelaySeconds": 5,
+      "promptSuppressionMinutes": 30,
+      "autoPromptEnabled": true,
+      "requireDetectedMeetingForStart": false
+    },
+    "dashboard": {
+      "windowWidth": 1440,
+      "windowHeight": 900,
+      "minWindowWidth": 1040,
+      "minWindowHeight": 680,
+      "wideBreakpointWidth": 1400,
+      "stackedBreakpointWidth": 1100,
+      "defaultStatusPanelWidth": 380,
+      "compactStatusPanelWidth": 320,
+      "stackedStatusPanelHeight": 240,
+      "defaultTopSectionHeight": 290,
+      "appBarHeight": 54,
+      "summaryStripHeight": 92,
+      "navRailWidth": 156,
+      "navRailButtonHeight": 34,
+      "workspaceSidebarWidth": 320,
+      "workspaceSidebarMinWidth": 280,
+      "workspaceSidebarStackedHeight": 260,
+      "overflowButtonWidth": 78,
+      "diagnosticsToggleButtonWidth": 120,
+      "topBarStatusMaxWidth": 480,
+      "minimumControlPanelWidth": 420,
+      "statusDetailsHeight": 110,
+      "controlButtonHeight": 32,
+      "primaryActionButtonWidth": 80,
+      "pickerButtonWidth": 88,
+      "meetingsFolderButtonWidth": 118,
+      "resetLayoutButtonWidth": 100,
+      "hideButtonWidth": 92,
+      "commandButtonGap": 8,
+      "workspaceTabWidth": 160,
+      "workspaceListMinWidth": 260,
+      "workspaceDetailMinWidth": 340,
+      "workspaceBottomPaneMinHeight": 180,
+      "historyMainSplitRatio": 0.38,
+      "historyDetailSplitRatio": 0.56,
+      "actionMainSplitRatio": 0.32,
+      "actionDetailSplitRatio": 0.55,
+      "diagnosticsCollapsedByDefault": true,
+      "enableHorizontalTextScroll": true,
+      "statusWordWrap": true,
+      "captionsWordWrap": true,
+      "showTopBarSubtitle": true,
+      "showWorkspaceSummary": true,
+      "showFooterHint": true,
+      "showEmbeddedWorkspaceHeaders": false
+    },
+    "liveCaptions": {
+      "uiRefreshIntervalMs": 120,
+      "nativeCaptionPollIntervalMs": 350
+    },
+    "notifications": {
+      "startupBalloonMs": 2500,
+      "sessionBalloonMs": 2000,
+      "warningBalloonMs": 2500
+    },
+    "browserCaptionBridge": {
+      "host": "127.0.0.1",
+      "port": 17824
+    },
+    "captureWorker": {
+      "pipeName": "meeting-recorder-capture",
+      "connectTimeoutMs": 1500,
+      "startupPollIntervalMs": 250,
+      "startupPollAttempts": 12,
+      "commandRetryDelayMs": 300,
+      "commandRetryAttempts": 12
+    },
+    "capture": {
+      "screenFrameRate": 6,
+      "screenVideoCodec": "libx264",
+      "screenVideoPreset": "ultrafast",
+      "screenPixelFormat": "yuv420p",
+      "drawMouse": true,
+      "ffmpegTimeoutSeconds": 30,
+      "audioBitrateKbps": 192,
+      "audioSampleRate": 48000,
+      "audioChannels": 2
+    },
+    "meetingSignatures": [
+      {
+        "platform": "zoom",
+        "sourceType": "native-window",
+        "processNames": ["zoom"],
+        "titleFragments": ["zoom meeting", "zoom workplace", " zoom "]
+      },
+      {
+        "platform": "teams",
+        "sourceType": "native-window",
+        "processNames": ["ms-teams", "teams"],
+        "titleFragments": ["microsoft teams", "teams meeting", "meeting | microsoft teams"]
+      },
+      {
+        "platform": "webex",
+        "sourceType": "native-window",
+        "processNames": ["webex", "ciscocollabhost"],
+        "titleFragments": ["webex", "meeting"]
+      },
+      {
+        "platform": "google-meet",
+        "sourceType": "browser-window",
+        "processNames": ["chrome", "msedge"],
+        "titleFragments": ["google meet", "meet.google.com", "meet -", "- meet"]
+      },
+      {
+        "platform": "teams-web",
+        "sourceType": "browser-window",
+        "processNames": ["chrome", "msedge"],
+        "titleFragments": ["microsoft teams", "teams.microsoft.com", "teams on the web"]
+      },
+      {
+        "platform": "zoom-web",
+        "sourceType": "browser-window",
+        "processNames": ["chrome", "msedge"],
+        "titleFragments": ["zoom", "app.zoom.us", "zoom workplace"]
+      },
+      {
+        "platform": "webex-web",
+        "sourceType": "browser-window",
+        "processNames": ["chrome", "msedge"],
+        "titleFragments": ["webex", "webex.com", "cisco webex"]
+      }
+    ]
+  },
+  "companion": {
+    "server": {
+      "host": "127.0.0.1",
+      "port": 17823,
+      "startupName": "MeetingRecorderCompanion"
+    },
+    "summary": {
+      "provider": "openai",
+      "ollamaUrl": "http://127.0.0.1:11434",
+      "ollamaModel": "qwen2.5:7b-instruct",
+      "openaiBaseUrl": "https://api.openai.com/v1",
+      "openaiModel": "gpt-5-mini",
+      "openaiMaxOutputTokens": 900,
+      "ollamaTimeoutSeconds": 60,
+      "openaiTimeoutSeconds": 90,
+      "maxTranscriptChars": 12000,
+      "maxHighlightSentences": 5,
+      "maxDecisionSentences": 5,
+      "maxActionItemSentences": 5
+    },
+    "transcription": {
+      "gpuModel": "small",
+      "cpuModel": "base",
+      "liveGpuModel": "small",
+      "liveCpuModel": "base",
+      "normalizedSampleRate": 16000,
+      "normalizedChannels": 1,
+      "liveLanguageHint": "en",
+      "fullTask": "translate",
+      "liveTask": "translate",
+      "vadBeamSize": 5,
+      "fallbackBeamSize": 1,
+      "liveBeamSize": 1,
+      "liveBestOf": 1
+    },
+    "liveCaptions": {
+      "defaultPollSeconds": 0.35,
+      "defaultWindowSeconds": 2,
+      "displayLineCount": 250,
+      "historyLineCount": 250,
+      "recentSegmentCount": 2,
+      "emptyPassesBeforeFallback": 1,
+      "clipSampleRate": 16000,
+      "clipChannels": 1
+    },
+    "history": {
+      "defaultSearchLimit": 10,
+      "maxTranscriptChars": 12000,
+      "maxSummaryChars": 5000,
+      "maxRelevantExcerpts": 6,
+      "fallbackExcerptCount": 5,
+      "openaiTimeoutSeconds": 90,
+      "openaiMaxOutputTokens": 700
+    },
+    "automation": {
+      "openaiTimeoutSeconds": 90,
+      "openaiMaxOutputTokens": 700,
+      "maxActionItems": 10,
+      "maxTranscriptChars": 12000
+    },
+    "processing": {
+      "shutdownJoinTimeoutSeconds": 5
+    }
+  }
+}

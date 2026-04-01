@@ -1,0 +1,11 @@
+{
+  "name": "meeting-recorder-local",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Browser-first meeting recorder with a local Windows companion.",
+  "scripts": {
+    "test": "npm run test:extension && npm run test:companion",
+    "test:extension": "node browser-extension/tests/adapters.test.js",
+    "test:companion": "python -m unittest discover -s companion/tests -p \"test_*.py\""
+  }
+}

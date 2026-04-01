@@ -1,0 +1,99 @@
+#meeting-recorder-root {
+  all: initial;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2147483647;
+}
+
+.meeting-recorder-card {
+  width: 320px;
+  color: #f8f1e5;
+  background: linear-gradient(135deg, rgba(16, 29, 30, 0.96), rgba(56, 78, 63, 0.94));
+  border: 1px solid rgba(236, 199, 131, 0.35);
+  border-radius: 18px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+  padding: 16px;
+}
+
+.meeting-recorder-card[data-state="hidden"] {
+  display: none;
+}
+
+.meeting-recorder-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ecc783;
+}
+
+.meeting-recorder-eyebrow::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ecc783;
+}
+
+.meeting-recorder-title {
+  margin: 10px 0 6px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff6e9;
+}
+
+.meeting-recorder-copy {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(255, 246, 233, 0.85);
+}
+
+.meeting-recorder-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.meeting-recorder-button {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  min-width: 0;
+  flex: 1;
+  border-radius: 999px;
+  padding: 10px 14px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  transition: transform 120ms ease, opacity 120ms ease, background 120ms ease;
+}
+
+.meeting-recorder-button:hover {
+  transform: translateY(-1px);
+}
+
+.meeting-recorder-button:active {
+  transform: translateY(1px);
+}
+
+.meeting-recorder-button--primary {
+  background: #ecc783;
+  color: #122122;
+}
+
+.meeting-recorder-button--secondary {
+  background: rgba(255, 246, 233, 0.14);
+  color: #fff6e9;
+  border: 1px solid rgba(255, 246, 233, 0.12);
+}
+
+.meeting-recorder-status {
+  margin-top: 12px;
+  font-size: 12px;
+  color: rgba(255, 246, 233, 0.72);
+}
