@@ -15,10 +15,13 @@ public sealed class HistoryForm : Form
     private readonly TextBox _answerBox;
     private readonly SplitContainer _detailSplit;
     private readonly SplitContainer _mainSplit;
+    private readonly TextBox _insightsBox;
     private readonly Button _openFolderButton;
     private readonly TextBox _previewBox;
+    private readonly UiTabControl _previewTabs;
     private readonly TextBox _queryBox;
     private readonly ListView _resultsView;
+    private readonly CheckBox _semanticSearchCheckBox;
     private readonly Label _statusLabel;
     private readonly TextBox _questionBox;
     private readonly UiBadgeLabel _resultBadge;
@@ -85,6 +88,17 @@ public sealed class HistoryForm : Form
         _openFolderButton.Enabled = false;
         _openFolderButton.Click += (_, _) => OpenSelectedFolder();
 
+        _semanticSearchCheckBox = new CheckBox
+        {
+            AutoSize = true,
+            Text = "Semantic",
+            Checked = true,
+            BackColor = Color.Transparent,
+            ForeColor = UiTheme.TextMuted,
+            Font = UiTheme.BodyFont,
+            Margin = new Padding(4, 10, 8, 0)
+        };
+
         _statusLabel = new Label
         {
             AutoEllipsis = true,
@@ -110,6 +124,7 @@ public sealed class HistoryForm : Form
         toolbarRow.Controls.Add(_queryBox);
         toolbarRow.Controls.Add(searchButton);
         toolbarRow.Controls.Add(recentButton);
+        toolbarRow.Controls.Add(_semanticSearchCheckBox);
         toolbarRow.Controls.Add(resetLayoutButton);
         toolbarRow.Controls.Add(_openFolderButton);
 
@@ -197,6 +212,16 @@ public sealed class HistoryForm : Form
         };
         UiTheme.StyleTextBox(_previewBox, readOnly: true, code: false);
 
+        _insightsBox = new TextBox
+        {
+            Dock = DockStyle.Fill,
+            Multiline = true,
+            ReadOnly = true,
+            ScrollBars = ScrollBars.Both,
+            WordWrap = false
+        };
+        UiTheme.StyleTextBox(_insightsBox, readOnly: true, code: false);
+
         _questionBox = new TextBox
         {
             Dock = DockStyle.Top,
@@ -248,6 +273,35 @@ public sealed class HistoryForm : Form
                 "A stitched view of the stored summary, transcript, and any detected participant context."));
         }
 
+        var insightsCard = new UiCardPanel
+        {
+            Dock = DockStyle.Fill,
+            AccentColor = UiTheme.Warning,
+            ShowAccent = !_embedded,
+            Padding = _embedded ? new Padding(6) : new Padding(16)
+        };
+        insightsCard.Controls.Add(_insightsBox);
+        if (_embedded)
+        {
+            insightsCard.Controls.Add(CreateEmbeddedPaneLabel("Insights"));
+        }
+        else
+        {
+            insightsCard.Controls.Add(UiTheme.CreateSectionTitle(
+                "Insights",
+                "Smart title, meeting type, sentiment, agenda, speakers, highlight clips, and commitments extracted for this session."));
+        }
+
+        _previewTabs = new UiTabControl
+        {
+            Dock = DockStyle.Fill,
+            ItemSize = new Size(140, 36)
+        };
+        _previewTabs.TabPages.Add(new TabPage("Preview") { Padding = new Padding(8) });
+        _previewTabs.TabPages.Add(new TabPage("Insights") { Padding = new Padding(8) });
+        _previewTabs.TabPages[0].Controls.Add(previewCard);
+        _previewTabs.TabPages[1].Controls.Add(insightsCard);
+
         var askBody = new Panel
         {
             Dock = DockStyle.Fill,
@@ -284,7 +338,7 @@ public sealed class HistoryForm : Form
             SplitterWidth = _embedded ? 8 : 10
         };
         UiTheme.StyleSplitContainer(_detailSplit);
-        _detailSplit.Panel1.Controls.Add(previewCard);
+        _detailSplit.Panel1.Controls.Add(_previewTabs);
         _detailSplit.Panel2.Controls.Add(askCard);
         _detailSplit.SplitterMoved += (_, _) => _savedDetailSplitDistance = _detailSplit.SplitterDistance;
 
@@ -363,9 +417,18 @@ public sealed class HistoryForm : Form
             return;
         }
 
+        if (_semanticSearchCheckBox.Checked)
+        {
+            var semanticResults = await _cliClient.SemanticSearchResultsAsync(query, 25);
+            PopulateSemanticResults(semanticResults);
+            _statusLabel.Text = semanticResults.Count == 0
+                ? $"Semantic search found no matches for \"{query}\"."
+                : $"Semantic search completed for \"{query}\".";
+            return;
+        }
+
         PopulateResults(_repository.SearchSessions(query));
-        _statusLabel.Text = $"Search completed for \"{query}\".";
-        await Task.CompletedTask;
+        _statusLabel.Text = $"Keyword search completed for \"{query}\".";
     }
 
     private void PopulateResults(IReadOnlyList<SavedMeetingSession> sessions)
@@ -407,12 +470,67 @@ public sealed class HistoryForm : Form
         }
     }
 
+    private void PopulateSemanticResults(IReadOnlyList<SemanticSearchResultItem> results)
+    {
+        var sessionsByDirectory = _repository.GetRecentSessions(500)
+            .ToDictionary(session => session.SessionDirectory, StringComparer.OrdinalIgnoreCase);
+
+        _resultsView.BeginUpdate();
+        _resultsView.Items.Clear();
+        foreach (var result in results)
+        {
+            if (string.IsNullOrWhiteSpace(result.SessionDir) ||
+                !sessionsByDirectory.TryGetValue(result.SessionDir, out var session))
+            {
+                continue;
+            }
+
+            var excerpt = result.Excerpts?.FirstOrDefault();
+            var snippet = excerpt?.Text;
+            if (string.IsNullOrWhiteSpace(snippet))
+            {
+                snippet = session.SearchBlob.Length > 220
+                    ? session.SearchBlob[..220].Replace(Environment.NewLine, " ")
+                    : session.SearchBlob.Replace(Environment.NewLine, " ");
+            }
+
+            var item = new ListViewItem(session.Title)
+            {
+                Tag = session
+            };
+            item.SubItems.Add(session.Platform);
+            item.SubItems.Add(session.StartedAt?.ToLocalTime().ToString("g") ?? string.Empty);
+            item.SubItems.Add(snippet ?? string.Empty);
+            _resultsView.Items.Add(item);
+        }
+
+        _resultsView.EndUpdate();
+        AdjustResultColumns();
+        _previewBox.Text = _resultsView.Items.Count == 0 ? "No semantically related meetings matched that query." : string.Empty;
+        _answerBox.Clear();
+        _openFolderButton.Enabled = false;
+        _askButton.Enabled = false;
+        UpdateResultBadge(_resultsView.Items.Count);
+
+        if (_resultsView.Items.Count > 0)
+        {
+            _resultsView.Items[0].Selected = true;
+            _resultsView.Select();
+            LoadSelectedPreview();
+        }
+        else
+        {
+            _statusLabel.Text = "No semantic matches were found.";
+        }
+    }
+
     private void LoadSelectedPreview()
     {
         var session = GetSelectedSession();
         if (session is null)
         {
             _previewBox.Text = string.Empty;
+            _insightsBox.Text = string.Empty;
             _answerBox.Clear();
             _openFolderButton.Enabled = false;
             _askButton.Enabled = false;
@@ -420,6 +538,7 @@ public sealed class HistoryForm : Form
         }
 
         _previewBox.Text = _repository.LoadPreview(session);
+        _insightsBox.Text = _repository.LoadInsightsSummary(session);
         _answerBox.Clear();
         _openFolderButton.Enabled = true;
         _askButton.Enabled = true;

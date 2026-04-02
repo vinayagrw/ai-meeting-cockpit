@@ -332,11 +332,13 @@ public sealed class MeetingDashboardStudioForm : Form
         RenderState();
     }
 
-    public void UpdateCaptions(string status, string text)
+    public void UpdateCaptions(string status, string text, string? meta = null)
     {
         _captionsStatusLabel.Text = string.IsNullOrWhiteSpace(status) ? "Listening" : status;
 
-        var metaText = "Participant hints and caption source details will appear here.";
+        var metaText = string.IsNullOrWhiteSpace(meta)
+            ? "Participant hints and caption source details will appear here."
+            : meta.Trim();
         var bodyText = text;
         if (!string.IsNullOrWhiteSpace(text))
         {
@@ -344,7 +346,9 @@ public sealed class MeetingDashboardStudioForm : Form
             var lines = normalized.Split('\n');
             if (lines.Length > 0 && lines[0].StartsWith("Participants detected:", StringComparison.OrdinalIgnoreCase))
             {
-                metaText = lines[0].Trim();
+                metaText = string.IsNullOrWhiteSpace(metaText)
+                    ? lines[0].Trim()
+                    : $"{metaText} | {lines[0].Trim()}";
                 bodyText = lines.Length > 1
                     ? string.Join(Environment.NewLine, lines, 1, lines.Length - 1).Trim()
                     : string.Empty;

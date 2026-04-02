@@ -2,53 +2,109 @@
 
 # Meeting Recorder
 
-
-> [!IMPORTANT]
-> **Status: beta.** The Windows dashboard, capture flow, captions path, history, action center, and processing pipeline are in the repo today. Reliability and polish are still being hardened across Zoom, Teams, Webex, and browser meetings.
+> Record meetings, stream captions, recover decisions, and turn raw calls into searchable memory.
 
 <p align="center">
-  <a href="#why-this-exists">Why this exists</a> &bull;
-  <a href="#product-tour">Product tour</a> &bull;
-  <a href="#what-you-get">Features</a> &bull;
-  <a href="#architecture">Architecture</a> &bull;
-  <a href="#quick-start">Quick start</a> &bull;
-  <a href="#scripts-youll-actually-use">Scripts</a> &bull;
-  <a href="#session-output">Session output</a> &bull;
+  <img alt="Platform" src="https://img.shields.io/badge/Platform-Windows%2011-0F6CBD?style=for-the-badge&logo=windows11&logoColor=white" />
+  <img alt="Desktop shell" src="https://img.shields.io/badge/Desktop-WinForms%20Dashboard-1E3A8A?style=for-the-badge" />
+  <img alt="Companion" src="https://img.shields.io/badge/Pipeline-Python%20Companion-0F766E?style=for-the-badge" />
+  <img alt="AI" src="https://img.shields.io/badge/AI-OpenAI%20Ready-111827?style=for-the-badge" />
+</p>
+
+<p align="center">
+  <a href="#why-it-exists">Why it exists</a> &middot;
+  <a href="#latest-feature-updates">Latest feature updates</a> &middot;
+  <a href="#what-you-get">What you get</a> &middot;
+  <a href="#dashboard-surfaces">Dashboard surfaces</a> &middot;
+  <a href="#intelligence-layer">Intelligence layer</a> &middot;
+  <a href="#quick-start">Quick start</a> &middot;
+  <a href="#session-layout">Session layout</a> &middot;
+  <a href="#scripts">Scripts</a> &middot;
   <a href="#troubleshooting">Troubleshooting</a>
 </p>
 
+> [!IMPORTANT]
+> **Status: beta, but real.** This repo already contains a working Windows recorder shell, screen/audio capture flow, live captions path, meeting history, action center, semantic retrieval, recurring speaker learning, and post-processing pipeline. Reliability and UX polish are still being hardened.
+
 ---
 
-## Why This Exists
+## Why It Exists
 
-Most meeting tools solve only one layer of the workflow:
+Most meeting tools solve only one slice of the problem:
 
-- recording without useful outputs
-- captions without memory
-- notes without evidence
-- summaries without follow-through
+- they record, but do not help you recover decisions later
+- they caption, but do not remember anything after the call
+- they summarize, but do not stay grounded in the evidence
+- they create notes, but do not turn them into follow-through
 
-Meeting Recorder is designed to close that loop in one Windows desktop flow:
+**Meeting Recorder** is built as one Windows-first workspace that keeps the full chain together:
 
-1. Start a recording from one app.
-2. Capture screen and/or audio.
-3. Show live captions while the session runs.
-4. Generate transcript, summary, action items, and follow-up after stop.
-5. Search old meetings and ask grounded questions later.
-
-This repo is **Windows-first** now. The browser extension remains in the repository as a legacy/helper path, but the main product surface is the Windows dashboard and tray app.
+1. Capture the meeting
+2. Keep live context visible while it runs
+3. Process it into transcript, summary, actions, and insights
+4. Search, ask, and revisit it later
+5. Track commitments and repeated speakers across sessions
 
 <p align="right"><a href="#top">back to top</a></p>
 
 ---
 
-## Product Tour
+## Latest Feature Updates
+
+### Recently added
+
+- **Faster live captions path**
+  Caption text now lands first, with speaker and tone enrichment applied after the fast pass.
+- **Pop-out captions window**
+  Live captions can stay visible in a separate window while the main dashboard stays focused on history or action review.
+- **Recurring speaker memory**
+  Processed meetings can now build lightweight cross-session speaker profiles that show up in insights and live caption labels.
+- **Richer insights in the dashboard**
+  History now surfaces agenda, sentiment, highlights, highlight clips, commitments, speakers, and recurring speaker matches.
+- **Stronger Action Center**
+  The app now includes cross-meeting commitments, prep briefs, topic timelines, and recurring-speaker visibility.
+- **Cleaner output layout**
+  New sessions keep the top-level meeting folder lighter, with richer derived signals bundled into `insights.json`.
+
+### Live captions, now
+
+- fast text-first updates
+- retained caption history
+- pop-out viewing
+- best-effort live speaker labels
+- tone hints in the UI
+- atomic JSON writes with safer dashboard reads
+
+<p align="right"><a href="#top">back to top</a></p>
+
+---
+
+## Product View
 
 <p align="center">
-  <img src="docs/assets/dashboard-screenshot.png" alt="Meeting Recorder — Studio Dashboard" width="100%" />
+  <img src="docs/assets/dashboard-screenshot.png" alt="Meeting Recorder dashboard" width="100%" />
 </p>
 
-> The studio dashboard shows live captions, sidebar navigation, recording controls, and capture configuration in a single unified view. Switch between **Live Captions**, **Meeting History**, and **Action Center** from the sidebar.
+<p align="center">
+  <img src="docs/assets/Action-center.png" alt="Meeting Recorder action center" width="100%" />
+</p>
+
+### The product in one sentence
+
+**A Windows meeting cockpit for capture, live captions, searchable memory, and follow-through.**
+
+### The current product stack
+
+- **Windows shell**
+  Tray app, dashboard, live captions view, Meeting History, Action Center
+- **Capture path**
+  Screen + audio or audio only, with session-oriented local artifacts
+- **Companion pipeline**
+  Transcription, summarization, action extraction, commitments, highlights, prep, timelines, search
+- **Local-first storage**
+  Sessions saved under `Documents\Meetings`
+- **OpenAI-ready intelligence**
+  Summaries, Q&A, semantic search, extraction, title generation, meeting classification
 
 <p align="right"><a href="#top">back to top</a></p>
 
@@ -56,45 +112,134 @@ This repo is **Windows-first** now. The browser extension remains in the reposit
 
 ## What You Get
 
-| | Area | Included today |
-|---|---|---|
-| :desktop_computer: | **Windows UX** | Tray app, single dashboard, pop-out captions, meeting history, action center |
-| :studio_microphone: | **Recording modes** | `Screen + audio`, `Audio only` |
-| :dart: | **Capture targets** | Full screen, selected display, selected window |
-| :memo: | **Live review** | In-app live captions with retained history |
-| :gear: | **Post-processing** | Transcript, summary, action items, follow-up draft |
-| :mag: | **Search and recall** | Meeting history and `Ask This Meeting` |
-| :robot: | **AI provider** | OpenAI-backed summaries and Q&A with local fallback behavior |
-| :floppy_disk: | **Storage** | Local meeting folders under `Documents\Meetings` |
-| :wrench: | **Recovery** | Batch repair for sessions whose final audio mix failed |
+### Core workflow
+
+| Area | Included now |
+| --- | --- |
+| Recording modes | `Screen + audio`, `Audio only` |
+| Capture targets | Full screen, selected display, selected window |
+| Session controls | Start, pause, resume, stop |
+| Live view | Dashboard captions + pop-out captions window + retained caption history |
+| History | Search completed meetings, inspect evidence, ask questions |
+| Action workflow | Action items, follow-up, commitments, prep brief, topic timeline, recurring speakers |
+| Storage | Local session folders in `Documents\Meetings` |
+| Recovery | Mix-repair and migration scripts for older sessions |
+
+### Intelligence outputs
+
+| Output | Status |
+| --- | --- |
+| Transcript | Shipped |
+| Summary | Shipped |
+| Action items | Shipped |
+| Follow-up draft | Shipped |
+| Smart title | Shipped |
+| Meeting type | Shipped |
+| Sentiment analysis | Shipped |
+| Agenda extraction | Shipped |
+| Highlight moments | Shipped |
+| Highlight clip export | Shipped for new processed sessions |
+| Commitments | Shipped |
+| Semantic search | Shipped |
+| Recurring speaker identification | Shipped, first-pass |
+
+### What is already visible in the Windows app
+
+- **Meeting History**
+  semantic search, preview, insights, ask-this-meeting
+- **Insights**
+  smart title, meeting type, sentiment, agenda, speakers, recurring speaker matches, highlights, highlight clips, commitments
+- **Action Center**
+  action items, follow-up draft, per-meeting commitments, cross-meeting commitments, prep brief, topic timeline, recurring speakers
+- **Live Captions**
+  rolling caption history, participant context, tone, best-effort live speaker labeling, and pop-out viewing
 
 <p align="right"><a href="#top">back to top</a></p>
 
 ---
 
-## Current Reality
+## Dashboard Surfaces
 
-### Working now
+### 1. Live Captions
 
-- Windows-first dashboard and tray workflow
-- manual recording even when meeting detection is not active
-- session capture switching in the in-process path
-- live captions with retained history
-- processed local session outputs
-- searchable history and follow-up views
-- OpenAI-backed summary and meeting Q&A when configured
-- repair path for older recordings with broken mic/system mixes
+- Fast text-first updates while recording
+- Full caption history while recording
+- Pop-out captions window
+- Participant context when available
+- Real-time tone indicator
+- Best-effort recurring speaker name shown in live captions when the model has a confident match
 
-### Still being hardened
+### 2. Meeting History
+
+- Keyword or semantic search across saved meetings
+- Evidence-backed preview
+- Structured insights panel
+- Ask a question against one saved meeting
+- Open the session folder directly
+
+### 3. Action Center
+
+- Review extracted action items
+- Inspect follow-up draft
+- Track per-meeting commitments
+- Review open commitments across meetings
+- Generate a prep brief for the next meeting
+- Build a topic timeline
+- Surface recurring speakers already learned by the system
+
+<p align="right"><a href="#top">back to top</a></p>
+
+---
+
+## Intelligence Layer
+
+### What the AI layer does today
+
+| Capability | What it does |
+| --- | --- |
+| Smart meeting titles | Generates a descriptive session title from the meeting content |
+| Meeting type detection | Classifies sessions like standup, 1:1, planning, brainstorm |
+| Sentiment / tone | Scores post-session sentiment and shows live tone hints |
+| Highlights | Extracts important moments and exports clips for new sessions |
+| Commitments | Tracks explicit promises and owners |
+| Semantic search | Finds related meetings by meaning, not just exact text |
+| Ask This Meeting | Answers against saved transcript and summary context |
+| Prep brief | Summarizes what matters before the next related meeting |
+| Topic timeline | Tracks how one topic evolves across sessions |
+| Recurring speakers | Learns lightweight speaker profiles across processed meetings |
+| Live speaker labels | Reuses learned speaker profiles during live captions when confidence is high enough |
+
+### Recurring speaker identification
+
+This repo now includes a first-pass recurring speaker memory:
+
+- voice-like embeddings are computed from diarized audio segments
+- speaker profiles are stored across sessions
+- later meetings can reuse those learned identities
+- live captions can show a learned speaker name when a confident match exists
 
 > [!NOTE]
-> These areas have shipped paths in the app but are not yet fully reliable across all scenarios.
+> This is a practical first pass, not a full production biometric speaker-verification stack. It works best after the app has already processed multiple meetings with usable speech from the same people.
 
-- capture reliability across every Zoom, Teams, Webex, and browser scenario
-- truly realtime captions
-- named speaker quality across native apps
-- desktop resizing/layout polish across all monitor and DPI combinations
-- deeper transcript grounding for every `Ask This Meeting` answer
+### Current reality
+
+#### Working well enough to use
+
+- Windows-first dashboard flow
+- local session folders
+- semantic meeting recall
+- grounded follow-up Q&A
+- action extraction and follow-up generation
+- recurring speaker learning across sessions
+- real-time tone and live speaker hints
+
+#### Still being hardened
+
+- capture reliability across Zoom, Teams, Webex, and browsers
+- low-latency true streaming captions
+- stronger speaker matching on noisy audio
+- multi-monitor edge cases
+- overall UX polish and density in the dashboard
 
 <p align="right"><a href="#top">back to top</a></p>
 
@@ -104,17 +249,17 @@ This repo is **Windows-first** now. The browser extension remains in the reposit
 
 | Capability | Google Meet in Chrome/Edge | Teams desktop | Zoom desktop | Webex desktop |
 | --- | --- | --- | --- | --- |
-| Meeting detection | Beta | Beta | Beta | Beta |
-| `Audio only` recording | Better path today | Beta | Beta | Beta |
-| `Screen + audio` recording | Beta | Beta | Beta | Beta |
-| Switch target mid-session | Beta | Beta | Beta | Beta |
-| Live captions | Beta | Partial | Partial | Partial |
-| Named participants | Partial | Partial | Partial | Partial |
+| Detection | Beta | Beta | Beta | Beta |
+| Audio-only recording | Better path today | Beta | Beta | Beta |
+| Screen + audio recording | Beta | Beta | Beta | Beta |
+| Live captions | Best path today | Partial | Partial | Partial |
+| Named participants | Better when captions are exposed | Partial | Partial | Partial |
+| Recurring speaker memory | Beta | Beta | Beta | Beta |
 | History + Ask | Available after processing | Available after processing | Available after processing | Available after processing |
 
-> [!NOTE]
-> **Beta** means there is a shipped path in the app, but it still needs more hardening.
-> **Partial** means a path exists, but it is not reliable enough yet to treat as fully solved.
+> [!TIP]
+> **Beta** means the shipped path exists and is useful, but still needs more hardening.  
+> **Partial** means the plumbing exists, but the source app still limits reliability.
 
 <p align="right"><a href="#top">back to top</a></p>
 
@@ -124,12 +269,12 @@ This repo is **Windows-first** now. The browser extension remains in the reposit
 
 ```mermaid
 flowchart LR
-    A["Meeting apps<br/>Zoom · Teams · Webex · Browser meetings"] --> B["MeetingRecorder.Windows<br/>Tray + Dashboard + Session orchestration"]
-    B --> C["Capture pipeline<br/>Screen + system audio + mic"]
-    C --> D["Session folder<br/>recording.mp4 + metadata + _session"]
-    D --> E["Python companion<br/>Transcription + captions + summary + search + Q&A"]
-    E --> F["Outputs<br/>transcript.txt<br/>summary.md<br/>action-items.json<br/>follow-up.md"]
-    F --> G["Review surfaces<br/>History · Ask This Meeting · Action Center"]
+    A["Meeting Apps<br/>Zoom · Teams · Webex · Browser meetings"] --> B["MeetingRecorder.Windows<br/>Tray + Dashboard + session orchestration"]
+    B --> C["Capture Pipeline<br/>Screen / display / window + system audio + mic"]
+    C --> D["Session Folder<br/>recording.mp4 + metadata + _session"]
+    D --> E["Python Companion<br/>Transcription + captions + insights + search + Q&A"]
+    E --> F["Structured Artifacts<br/>summary.md<br/>action-items.json<br/>follow-up.md<br/>insights.json"]
+    F --> G["Review Surfaces<br/>Live Captions · Meeting History · Action Center"]
 ```
 
 <p align="right"><a href="#top">back to top</a></p>
@@ -145,20 +290,20 @@ flowchart LR
 - Python 3.11+
 - `ffmpeg.exe` on `PATH` or at `companion\bin\ffmpeg\ffmpeg.exe`
 
-> [!TIP]
-> **Recommended extras:**
-> - a local virtual environment under `.venv`
-> - `OPENAI_API_KEY` for better summaries and Q&A
-> - `faster-whisper` for local transcription
+Recommended:
+
+- a local `.venv`
+- `OPENAI_API_KEY`
+- `faster-whisper`
 
 ### Configuration model
 
-- [`meeting-recorder.config.json`](meeting-recorder.config.json)
-  Shared runtime behavior for the Windows app and Python companion.
-- [`.env.example`](.env.example)
-  Safe template for local secrets and machine-specific overrides.
+- [`meeting-recorder.config.json`](C:/Users/viagr/Documents/Codex/ai-meeting-cockpit/meeting-recorder.config.json)
+  Shared runtime behavior for the Windows app and the companion pipeline
+- [`.env.example`](C:/Users/viagr/Documents/Codex/ai-meeting-cockpit/.env.example)
+  Secrets and machine-specific overrides only
 
-### Step 1 — Create the Python environment
+### 1. Create the Python environment
 
 ```powershell
 python -m venv .venv
@@ -166,13 +311,13 @@ python -m venv .venv
 pip install -r .\companion\requirements.txt
 ```
 
-### Step 2 — Create your local secret file
+### 2. Create your local `.env`
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Then set at least:
+Set at least:
 
 ```env
 OPENAI_API_KEY=your_key_here
@@ -181,17 +326,15 @@ OPENAI_MODEL=gpt-5-mini
 ```
 
 > [!WARNING]
-> Do not commit your `.env` file. Use [`.env.example`](.env.example) as the safe template instead.
+> Never commit `.env`.
 
-### Step 3 — Build
+### 3. Build
 
 ```powershell
 .\scripts\build_windows_shell.ps1
 ```
 
-### Step 4 — Run
-
-Fast path:
+### 4. Run
 
 ```powershell
 .\scripts\start_windows_recorder_fast.ps1
@@ -203,31 +346,25 @@ Rebuild and relaunch:
 .\scripts\start_windows_recorder_fast.ps1 -Rebuild
 ```
 
-Or use:
+<p align="right"><a href="#top">back to top</a></p>
 
-```text
-Run-MeetingRecorder.cmd
-```
+---
+
+## In-App Flow
+
+1. Launch the recorder dashboard
+2. Choose `Screen + audio` or `Audio only`
+3. Choose full screen, a display, or a window
+4. Start the session
+5. Watch live captions in the main dashboard or pop-out window
+6. Stop when finished
+7. Review the meeting from History or Action Center
 
 <p align="right"><a href="#top">back to top</a></p>
 
 ---
 
-## In-App Workflow
-
-1. Launch the recorder dashboard.
-2. Choose `Screen + audio` or `Audio only`.
-3. Choose full screen or a window target.
-4. Use `Pick screen` or `Pick window` if needed.
-5. Click `Start`.
-6. Use `Pause`, `Resume`, `Stop`, `History`, `Action Center`, or pop-out captions from the same app.
-7. After stop, review the processed session from Meeting History or the Action Center.
-
-<p align="right"><a href="#top">back to top</a></p>
-
----
-
-## Session Output
+## Session Layout
 
 Sessions are stored under:
 
@@ -235,7 +372,7 @@ Sessions are stored under:
 Documents\Meetings\YYYY-MM-DD\<session-folder>
 ```
 
-Top-level files are the user-facing outputs:
+### Top-level outputs
 
 ```text
 metadata.json
@@ -244,18 +381,30 @@ transcript.txt
 summary.md
 action-items.json
 follow-up.md
+insights.json
 ```
+
+### `insights.json` bundles
+
+- smart title
+- meeting type
+- sentiment
+- agenda
+- highlights
+- highlight clips
+- commitments
+- speaker identity summary
 
 <details>
 <summary><strong>Internal runtime artifacts</strong></summary>
 
-Internal runtime artifacts are grouped under:
+Internal files live under:
 
 ```text
 <session-folder>\_session
 ```
 
-Typical internal files include:
+Typical files:
 
 ```text
 capture.json
@@ -267,10 +416,12 @@ mic.wav
 mixed-audio.wav
 transcript.json
 speaker-diarization.json
+speaker-identities.json
 live-captions.json
 live-captions.txt
 native-captions.json
 participants.json
+highlight-clips\
 ```
 
 </details>
@@ -279,27 +430,23 @@ participants.json
 
 ---
 
-## Scripts You'll Actually Use
+## Scripts
 
 | Script | Purpose |
 | --- | --- |
-| [build_windows_shell.ps1](scripts/build_windows_shell.ps1) | Build the Windows projects safely |
-| [start_windows_recorder_fast.ps1](scripts/start_windows_recorder_fast.ps1) | Fast launch or rebuild-and-launch |
-| [process_latest_meeting.ps1](scripts/process_latest_meeting.ps1) | Re-run processing for the latest meeting |
-| [repair_failed_audio_mix.ps1](scripts/repair_failed_audio_mix.ps1) | Repair old sessions where the final mic/system mix failed |
+| [build_windows_shell.ps1](C:/Users/viagr/Documents/Codex/ai-meeting-cockpit/scripts/build_windows_shell.ps1) | Build the Windows projects safely |
+| [start_windows_recorder_fast.ps1](C:/Users/viagr/Documents/Codex/ai-meeting-cockpit/scripts/start_windows_recorder_fast.ps1) | Fast launch or rebuild-and-launch |
+| [process_latest_meeting.ps1](C:/Users/viagr/Documents/Codex/ai-meeting-cockpit/scripts/process_latest_meeting.ps1) | Re-run processing for the newest meeting |
+| [repair_failed_audio_mix.ps1](C:/Users/viagr/Documents/Codex/ai-meeting-cockpit/scripts/repair_failed_audio_mix.ps1) | Repair old sessions where the final mix dropped mic audio |
+| [migrate_legacy_session_insights.ps1](C:/Users/viagr/Documents/Codex/ai-meeting-cockpit/scripts/migrate_legacy_session_insights.ps1) | Backfill older meetings into the consolidated `insights.json` layout |
 
-### Repair old recordings
-
-Repair all known failed sessions:
-
-```powershell
-.\scripts\repair_failed_audio_mix.ps1 -AllFailed
-```
-
-Repair one meeting folder directly:
+### Useful companion CLI commands
 
 ```powershell
-.\scripts\repair_failed_audio_mix.ps1 -SessionDir "C:\Users\you\Documents\Meetings\2026-04-01\some-session"
+python -m companion.meeting_companion semantic-search --query "pricing change"
+python -m companion.meeting_companion open-commitments
+python -m companion.meeting_companion meeting-prep --title "Weekly product sync"
+python -m companion.meeting_companion topic-timeline --query "rollout"
 ```
 
 <p align="right"><a href="#top">back to top</a></p>
@@ -308,35 +455,27 @@ Repair one meeting folder directly:
 
 ## Logs
 
-<details>
-<summary><strong>Log file locations</strong></summary>
-
-App-level logs:
+### App-level logs
 
 - `Documents\Meetings\logs\python-companion.log`
 - `Documents\Meetings\logs\dotnet-recorder.log`
 - `Documents\Meetings\logs\dotnet-startup-trace.log`
 - `Documents\Meetings\logs\dotnet-startup-error.log`
 
-Per-meeting logs:
+### Per-meeting logs
 
 - `<session-folder>\_session\app.log`
 - `<session-folder>\_session\processing.log`
 - `<session-folder>\_session\live-captions-worker.log`
 
 > [!NOTE]
-> If `Documents\Meetings` is not writable in a sandboxed run, logs fall back under repo-local `meetings-data\logs`.
-
-</details>
+> If `Documents\Meetings` is not writable, logs fall back under repo-local `meetings-data\logs`.
 
 <p align="right"><a href="#top">back to top</a></p>
 
 ---
 
 ## Troubleshooting
-
-> [!TIP]
-> Start by checking the relevant log files in the [Logs](#logs) section above.
 
 <details>
 <summary><strong>The dashboard does not appear</strong></summary>
@@ -350,8 +489,8 @@ Per-meeting logs:
 <details>
 <summary><strong>My voice is missing from the final video</strong></summary>
 
-- check whether `[meeting]\_session\mic.wav` exists and has real size
-- if the session is older and the final mix failed, run:
+- check `[meeting]\_session\mic.wav`
+- run:
 
 ```powershell
 .\scripts\repair_failed_audio_mix.ps1 -AllFailed
@@ -363,8 +502,8 @@ Per-meeting logs:
 <summary><strong>Transcript or summary is missing</strong></summary>
 
 - make sure the meeting actually captured audio
-- confirm `faster-whisper` is installed if you want local transcription
-- rerun processing:
+- install `faster-whisper`
+- rerun:
 
 ```powershell
 .\scripts\process_latest_meeting.ps1
@@ -375,9 +514,23 @@ Per-meeting logs:
 <details>
 <summary><strong>Live captions feel delayed</strong></summary>
 
-- this path is still near-realtime, not true streaming ASR yet
-- cleaner audio and smaller models help
-- browser/native caption feeds can improve quality when available
+- the current path is still near-realtime, not a true streaming ASR stack
+- caption text is now written on a fast path first, with speaker/tone enrichment applied after that
+- if tone or semantic features are rate-limited, the app should still keep showing caption text
+- check `<session-folder>\_session\live-captions-worker.log` and `Documents\Meetings\logs\dotnet-recorder.log` for caption timing or file-read issues
+- browser/native captions can improve responsiveness when available
+- cleaner audio leads to better speaker and tone hints
+
+</details>
+
+<details>
+<summary><strong>My old meetings still have extra JSON files</strong></summary>
+
+Run:
+
+```powershell
+.\scripts\migrate_legacy_session_insights.ps1 -AllSessions -DeleteLegacyFiles
+```
 
 </details>
 
@@ -387,30 +540,23 @@ Per-meeting logs:
 
 ## Repository Layout
 
-<details>
-<summary><strong>Repository structure</strong></summary>
-
 ```text
-Codex/
-├── windows-shell/                # .NET — tray, dashboard, capture, session orchestration
-│   ├── MeetingRecorder.Windows/
-│   ├── MeetingRecorder.CaptureWorker/
-│   └── MeetingRecorder.Shared/
-├── companion/                    # Python — transcription, summaries, captions, Q&A
-│   ├── meeting_companion/
-│   ├── tests/
-│   └── bin/
-├── browser-extension/            # Legacy helper path (optional)
-│   ├── src/
-│   └── tests/
-├── scripts/                      # Build, launch, repair, recovery helpers
-├── docs/assets/                  # README visuals and UI preview SVGs
-├── meeting-recorder.config.json
-├── .env.example
-└── README.md
+ai-meeting-cockpit/
+|-- windows-shell/                # .NET shell, capture orchestration, dashboard
+|   |-- MeetingRecorder.Windows/
+|   |-- MeetingRecorder.CaptureWorker/
+|   `-- MeetingRecorder.Shared/
+|-- companion/                    # Python pipeline, search, Q&A, extraction, captions
+|   |-- meeting_companion/
+|   |-- tests/
+|   `-- bin/
+|-- browser-extension/            # Optional legacy helper path
+|-- scripts/                      # Build, repair, migration, launch helpers
+|-- docs/assets/
+|-- meeting-recorder.config.json
+|-- .env.example
+`-- README.md
 ```
-
-</details>
 
 <p align="right"><a href="#top">back to top</a></p>
 
@@ -418,10 +564,7 @@ Codex/
 
 ## Testing
 
-<details>
-<summary><strong>Test commands</strong></summary>
-
-Python tests:
+Python:
 
 ```powershell
 python -m unittest discover -s companion\tests -p "test_*.py"
@@ -433,13 +576,11 @@ Windows build:
 .\scripts\build_windows_shell.ps1
 ```
 
-Browser adapter tests:
+Browser extension adapter tests:
 
 ```powershell
 node browser-extension\tests\adapters.test.js
 ```
-
-</details>
 
 <p align="right"><a href="#top">back to top</a></p>
 
@@ -447,29 +588,15 @@ node browser-extension\tests\adapters.test.js
 
 ## Near-Term Priorities
 
-- [ ] Harden screen + audio capture across all meeting tools
-- [ ] Reduce live-caption latency
-- [ ] Improve speaker attribution and named-caption coverage
-- [ ] Make `Ask This Meeting` more transcript-grounded
-- [ ] Keep the Windows-first product path independent from the browser extension
-
-<p align="right"><a href="#top">back to top</a></p>
-
----
-
-## Notes
-
-> [!CAUTION]
-> Do not commit a live [`.env`](.env) file. Use [`.env.example`](.env.example) instead.
-
-- this repo has a real Windows product path, not only a browser prototype
-- the browser extension is optional for the main Windows-first workflow
-
-<p align="right"><a href="#top">back to top</a></p>
+- [ ] Keep hardening capture reliability across apps and monitor setups
+- [ ] Push live captions toward a true streaming path
+- [ ] Improve speaker matching confidence on noisier meetings
+- [ ] Keep grounding `Ask This Meeting` answers more tightly in transcript evidence
+- [ ] Continue polishing dashboard density and layout behavior
 
 ---
 
 <p align="center">
-  <sub>Built for Windows 11 with WinForms, Python, and OpenAI.</sub><br/>
-  <sub>Meeting Recorder is a private project.</sub>
+  <sub>Built for Windows 11 with WinForms, Python, local session storage, and OpenAI-ready intelligence.</sub><br />
+  <sub>Meeting Recorder is a Windows-first meeting cockpit, not just a recorder.</sub>
 </p>

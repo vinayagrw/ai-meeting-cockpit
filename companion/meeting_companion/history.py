@@ -3,9 +3,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import re
-from urllib import error, request
 
 from .config import CompanionConfig
+from .pipeline.openai_client import call_openai_safe
 from .storage import SessionStorage, resolve_session_file
 
 _STOP_WORDS = {
@@ -124,34 +124,16 @@ def ask_meeting_question(config: CompanionConfig, session_dir: Path, question: s
             f"Summary:\n{summary_text[:config.history_max_summary_chars]}\n\n"
             f"Question: {question}"
         )
-        payload = json.dumps(
-            {
-                "model": config.openai_model,
-                "instructions": (
-                    "Answer the meeting question using only the provided context. "
-                    "Prefer transcript evidence, cite timestamps when possible, and write in English only."
-                ),
-                "input": prompt,
-                "max_output_tokens": config.history_openai_max_output_tokens,
-            }
-        ).encode("utf-8")
-        http_request = request.Request(
-            f"{config.openai_base_url.rstrip('/')}/responses",
-            data=payload,
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {config.openai_api_key}",
-            },
-            method="POST",
+        answer = call_openai_safe(
+            config,
+            "Answer the meeting question using only the provided context. "
+            "Prefer transcript evidence, cite timestamps when possible, and write in English only.",
+            prompt,
+            config.history_openai_max_output_tokens,
+            timeout=config.history_openai_timeout_seconds,
         )
-        try:
-            with request.urlopen(http_request, timeout=config.history_openai_timeout_seconds) as response:
-                body = json.loads(response.read().decode("utf-8"))
-            text = str(body.get("output_text", "")).strip()
-            if text:
-                return text
-        except (error.URLError, error.HTTPError, TimeoutError, OSError, ValueError, json.JSONDecodeError):
-            pass
+        if answer:
+            return answer
 
     if relevant_excerpts:
         lines = [

@@ -3,10 +3,10 @@ from __future__ import annotations
 from datetime import datetime
 import json
 import re
-from urllib import error, request
 
 from ..config import CompanionConfig
 from ..models import SessionStartRequest, TranscriptResult
+from .openai_client import call_openai_json_safe
 
 
 ACTION_SENTENCE_PATTERN = re.compile(
@@ -91,39 +91,14 @@ def build_action_items_with_openai(
         f"Platform: {meeting.platform}\n\n"
         f"Transcript:\n{transcript.text[:config.automation_max_transcript_chars]}"
     )
-    payload = json.dumps(
-        {
-            "model": config.openai_model,
-            "instructions": "Return JSON only. Use English only.",
-            "input": prompt,
-            "max_output_tokens": config.automation_openai_max_output_tokens,
-        }
-    ).encode("utf-8")
-    http_request = request.Request(
-        f"{config.openai_base_url.rstrip('/')}/responses",
-        data=payload,
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {config.openai_api_key}",
-        },
-        method="POST",
+    fallback_items = build_fallback_action_items(transcript)[:config.automation_max_action_items]
+    parsed = call_openai_json_safe(
+        config,
+        "Return JSON only. Use English only.",
+        prompt,
+        config.automation_openai_max_output_tokens,
+        timeout=config.automation_openai_timeout_seconds,
+        fallback={"items": fallback_items},
     )
-
-    try:
-        with request.urlopen(http_request, timeout=config.automation_openai_timeout_seconds) as response:
-            body = json.loads(response.read().decode("utf-8"))
-        text = str(body.get("output_text", "")).strip()
-        if not text:
-            for output_item in body.get("output", []) or []:
-                for content_item in output_item.get("content", []) or []:
-                    if content_item.get("type") == "output_text":
-                        text = str(content_item.get("text", "")).strip()
-                        if text:
-                            break
-                if text:
-                    break
-        parsed = json.loads(text)
-        items = parsed.get("items", [])
-        return [item for item in items if isinstance(item, dict)][:config.automation_max_action_items]
-    except (error.URLError, error.HTTPError, TimeoutError, OSError, ValueError, json.JSONDecodeError):
-        return build_fallback_action_items(transcript)[:config.automation_max_action_items]
+    items = parsed.get("items", [])
+    return [item for item in items if isinstance(item, dict)][:config.automation_max_action_items]

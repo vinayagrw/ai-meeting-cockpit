@@ -183,8 +183,14 @@
       "historyLineCount": 250,
       "recentSegmentCount": 2,
       "emptyPassesBeforeFallback": 1,
+      "enrichmentCooldownSeconds": 2.5,
       "clipSampleRate": 16000,
       "clipChannels": 1
+    },
+    "sentiment": {
+      "openaiMaxOutputTokens": 300,
+      "liveEnabled": true,
+      "liveUseOpenAi": false
     },
     "history": {
       "defaultSearchLimit": 10,
@@ -200,6 +206,12 @@
       "openaiMaxOutputTokens": 700,
       "maxActionItems": 10,
       "maxTranscriptChars": 12000
+    },
+    "speakerIdentification": {
+      "enabled": true,
+      "similarityThreshold": 0.75,
+      "clusterThreshold": 0.88,
+      "minSegmentSeconds": 1.2
     },
     "processing": {
       "shutdownJoinTimeoutSeconds": 5

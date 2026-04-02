@@ -96,6 +96,21 @@ def _coerce_str(value: object, default: str) -> str:
     return text or default
 
 
+def _coerce_bool(value: object, default: bool) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"1", "true", "yes", "on"}:
+            return True
+        if normalized in {"0", "false", "no", "off"}:
+            return False
+        return default
+    if isinstance(value, (int, float)):
+        return bool(value)
+    return default
+
+
 def resolve_meetings_root(workspace_root: Path, configured: str | None = None) -> Path:
     env_value = os.getenv("MEETING_COMPANION_MEETINGS_ROOT")
     configured_path = env_value or configured
@@ -180,6 +195,7 @@ class CompanionConfig:
     live_captions_empty_passes_before_fallback: int = 3
     live_captions_clip_sample_rate: int = 16000
     live_captions_clip_channels: int = 1
+    live_captions_enrichment_cooldown_seconds: float = 2.5
     history_default_search_limit: int = 10
     history_max_transcript_chars: int = 12000
     history_max_summary_chars: int = 5000
@@ -192,6 +208,53 @@ class CompanionConfig:
     automation_max_action_items: int = 10
     automation_max_transcript_chars: int = 12000
     processing_shutdown_join_timeout_seconds: int = 5
+
+    # ── AI features ──────────────────────────────────────────────────
+    # Embeddings
+    embedding_model: str = "text-embedding-3-small"
+    embedding_dimensions: int = 256
+    embedding_chunk_words: int = 300
+    embedding_chunk_overlap: int = 50
+
+    # Smart titles
+    titler_max_transcript_chars: int = 2000
+    titler_openai_max_output_tokens: int = 50
+
+    # Meeting type detection
+    meeting_type_openai_max_output_tokens: int = 100
+
+    # Agenda extraction
+    agenda_max_topics: int = 10
+    agenda_openai_max_output_tokens: int = 500
+
+    # Highlights
+    highlights_max_count: int = 5
+    highlights_openai_max_output_tokens: int = 400
+
+    # Follow-up (enhanced)
+    followup_openai_max_output_tokens: int = 800
+
+    # Commitments
+    commitments_openai_max_output_tokens: int = 500
+    commitments_max_items: int = 15
+
+    # Meeting prep
+    prep_max_past_sessions: int = 3
+    prep_openai_max_output_tokens: int = 600
+
+    # Topic timeline
+    timeline_openai_max_output_tokens: int = 500
+
+    # Sentiment analysis
+    sentiment_openai_max_output_tokens: int = 300
+    live_sentiment_enabled: bool = True
+    live_sentiment_use_openai: bool = False
+
+    # Speaker identification
+    speaker_id_enabled: bool = True
+    speaker_id_similarity_threshold: float = 0.75
+    speaker_id_cluster_threshold: float = 0.88
+    speaker_id_min_segment_seconds: float = 1.2
 
 
 def resolve_ffmpeg_path(companion_root: Path, workspace_root: Path, configured: str | None = None) -> str | None:
@@ -395,6 +458,10 @@ def load_config() -> CompanionConfig:
             _config_value(config_data, "companion", "liveCaptions", "clipChannels", default=1),
             1,
         ),
+        live_captions_enrichment_cooldown_seconds=_coerce_float(
+            _config_value(config_data, "companion", "liveCaptions", "enrichmentCooldownSeconds", default=2.5),
+            2.5,
+        ),
         history_default_search_limit=_coerce_int(
             _config_value(config_data, "companion", "history", "defaultSearchLimit", default=10),
             10,
@@ -442,5 +509,32 @@ def load_config() -> CompanionConfig:
         processing_shutdown_join_timeout_seconds=_coerce_int(
             _config_value(config_data, "companion", "processing", "shutdownJoinTimeoutSeconds", default=5),
             5,
+        ),
+        sentiment_openai_max_output_tokens=_coerce_int(
+            _config_value(config_data, "companion", "sentiment", "openaiMaxOutputTokens", default=300),
+            300,
+        ),
+        live_sentiment_enabled=_coerce_bool(
+            _config_value(config_data, "companion", "sentiment", "liveEnabled", default=True),
+            True,
+        ),
+        live_sentiment_use_openai=_coerce_bool(
+            _config_value(config_data, "companion", "sentiment", "liveUseOpenAi", default=False),
+            False,
+        ),
+        speaker_id_enabled=bool(
+            _config_value(config_data, "companion", "speakerIdentification", "enabled", default=True)
+        ),
+        speaker_id_similarity_threshold=_coerce_float(
+            _config_value(config_data, "companion", "speakerIdentification", "similarityThreshold", default=0.75),
+            0.75,
+        ),
+        speaker_id_cluster_threshold=_coerce_float(
+            _config_value(config_data, "companion", "speakerIdentification", "clusterThreshold", default=0.88),
+            0.88,
+        ),
+        speaker_id_min_segment_seconds=_coerce_float(
+            _config_value(config_data, "companion", "speakerIdentification", "minSegmentSeconds", default=1.2),
+            1.2,
         ),
     )

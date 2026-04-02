@@ -8,6 +8,7 @@ from urllib import error, request
 
 from ..config import CompanionConfig
 from ..models import SessionStartRequest, SummaryResult, TranscriptResult
+from .openai_client import call_openai
 
 
 ACTION_PATTERN = re.compile(r"\b(?:action item|follow up|follow-up|todo|i will|we should|next step)\b", re.IGNORECASE)
@@ -287,53 +288,16 @@ class OpenAISummarizer:
     def __init__(self, config: CompanionConfig) -> None:
         self.config = config
 
-    def _call_openai(self, prompt: str) -> str:
-        if not self.config.openai_api_key:
-            raise ValueError("OPENAI_API_KEY is not configured")
-
-        payload = json.dumps(
-            {
-                "model": self.config.openai_model,
-                "instructions": "You are a concise meeting summarizer. Return Markdown only. Write in English only.",
-                "input": prompt,
-                "max_output_tokens": self.config.openai_summary_max_output_tokens,
-            }
-        ).encode("utf-8")
-
-        http_request = request.Request(
-            f"{self.config.openai_base_url.rstrip('/')}/responses",
-            data=payload,
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {self.config.openai_api_key}",
-            },
-            method="POST",
-        )
-
-        with request.urlopen(http_request, timeout=self.config.openai_timeout_seconds) as response:
-            body = json.loads(response.read().decode("utf-8"))
-
-        output_text = str(body.get("output_text", "")).strip()
-        if output_text:
-            return output_text
-
-        for output_item in body.get("output", []) or []:
-            if output_item.get("type") != "message":
-                continue
-            for content_item in output_item.get("content", []) or []:
-                if content_item.get("type") == "output_text":
-                    text = str(content_item.get("text", "")).strip()
-                    if text:
-                        return text
-
-        return ""
-
     def summarize(self, meeting: SessionStartRequest, transcript: TranscriptResult) -> SummaryResult:
         prompt = _build_summary_prompt(meeting, transcript, self.config.summary_max_transcript_chars)
         try:
-            response = self._call_openai(prompt)
-            if response:
-                return SummaryResult(status="completed", markdown=response, provider="openai")
+            response = call_openai(
+                self.config,
+                "You are a concise meeting summarizer. Return Markdown only. Write in English only.",
+                prompt,
+                self.config.openai_summary_max_output_tokens,
+            )
+            return SummaryResult(status="completed", markdown=response, provider="openai")
         except (error.URLError, error.HTTPError, TimeoutError, OSError, ValueError, json.JSONDecodeError) as call_error:
             return SummaryResult(
                 status="fallback",
@@ -347,19 +311,6 @@ class OpenAISummarizer:
                 provider="fallback",
                 error=str(call_error),
             )
-
-        return SummaryResult(
-            status="fallback",
-            markdown=build_fallback_summary(
-                meeting,
-                transcript,
-                max_highlights=self.config.summary_max_highlights,
-                max_decisions=self.config.summary_max_decisions,
-                max_action_items=self.config.summary_max_action_items,
-            ),
-            provider="fallback",
-            error="OpenAI returned an empty response",
-        )
 
 
 def build_summarizer(config: CompanionConfig) -> Summarizer:

@@ -3,6 +3,7 @@ namespace MeetingRecorder.Windows.Shell;
 public sealed class LiveCaptionsForm : Form
 {
     private readonly Label _statusLabel;
+    private readonly Label _metaLabel;
     private readonly TextBox _captionsBox;
 
     public LiveCaptionsForm()
@@ -29,14 +30,24 @@ public sealed class LiveCaptionsForm : Form
             Text = "Captions will appear here when recording starts."
         };
 
+        _metaLabel = new Label
+        {
+            Dock = DockStyle.Top,
+            Height = 28,
+            Padding = new Padding(12, 4, 12, 0),
+            Font = UiTheme.BodyFont,
+            ForeColor = UiTheme.TextMuted,
+            Text = "Tone and participant context will appear here."
+        };
+
         _captionsBox = new TextBox
         {
             Dock = DockStyle.Fill,
             Multiline = true,
             ReadOnly = true,
-            ScrollBars = ScrollBars.Vertical,
+            ScrollBars = ScrollBars.Both,
             BorderStyle = BorderStyle.None,
-            WordWrap = true,
+            WordWrap = false,
             BackColor = UiTheme.Surface,
             ForeColor = UiTheme.TextPrimary,
             Font = new Font("Segoe UI", 11F, FontStyle.Regular, GraphicsUnit.Point),
@@ -52,6 +63,7 @@ public sealed class LiveCaptionsForm : Form
         hideButton.Click += (_, _) => Hide();
 
         Controls.Add(_captionsBox);
+        Controls.Add(_metaLabel);
         Controls.Add(_statusLabel);
         Controls.Add(hideButton);
         FormClosing += (_, eventArgs) =>
@@ -61,9 +73,12 @@ public sealed class LiveCaptionsForm : Form
         };
     }
 
-    public void UpdateCaptions(string status, string text)
+    public void UpdateCaptions(string status, string text, string? meta = null)
     {
         _statusLabel.Text = status;
+        _metaLabel.Text = string.IsNullOrWhiteSpace(meta)
+            ? "Tone and participant context will appear here."
+            : meta.Trim();
         var nextText = string.IsNullOrWhiteSpace(text)
             ? "Listening for speech..."
             : text;

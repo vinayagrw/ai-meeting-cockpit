@@ -38,6 +38,7 @@ public sealed class RecorderApplicationContext : ApplicationContext
     private LiveCaptionsForm? _liveCaptionsForm;
     private string? _promptedSuppressionKey;
     private string _lastCaptionStatus = "Waiting";
+    private string _lastCaptionMeta = "Participant hints and caption source details will appear here.";
     private string _lastCaptionText = "Start a recording to stream live captions here.";
 
     public RecorderApplicationContext()
@@ -624,7 +625,7 @@ public sealed class RecorderApplicationContext : ApplicationContext
     private void ShowLiveCaptionsWindow()
     {
         _liveCaptionsForm ??= new LiveCaptionsForm();
-        _liveCaptionsForm.UpdateCaptions(_lastCaptionStatus, _lastCaptionText);
+        _liveCaptionsForm.UpdateCaptions(_lastCaptionStatus, _lastCaptionText, _lastCaptionMeta);
         if (!_liveCaptionsForm.Visible)
         {
             _liveCaptionsForm.Show();
@@ -672,7 +673,13 @@ public sealed class RecorderApplicationContext : ApplicationContext
 
         try
         {
-            using var document = JsonDocument.Parse(File.ReadAllText(captionsPath));
+            var json = TryReadSharedText(captionsPath);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return;
+            }
+
+            using var document = JsonDocument.Parse(json);
             var status = document.RootElement.TryGetProperty("status", out var statusElement)
                 ? statusElement.GetString() ?? "Listening"
                 : "Listening";
@@ -696,23 +703,90 @@ public sealed class RecorderApplicationContext : ApplicationContext
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .ToArray()
                 : [];
+            var tone = document.RootElement.TryGetProperty("tone", out var toneElement)
+                ? toneElement.GetString()
+                : null;
+            var speaker = document.RootElement.TryGetProperty("speaker", out var speakerElement)
+                ? speakerElement.GetString()
+                : null;
+            var speakerSimilarity = document.RootElement.TryGetProperty("speakerSimilarity", out var speakerSimilarityElement) &&
+                                    speakerSimilarityElement.ValueKind == JsonValueKind.Number &&
+                                    speakerSimilarityElement.TryGetDouble(out var parsedSpeakerSimilarity)
+                ? parsedSpeakerSimilarity
+                : (double?)null;
+            var toneConfidence = document.RootElement.TryGetProperty("toneConfidence", out var toneConfidenceElement) &&
+                                 toneConfidenceElement.ValueKind == JsonValueKind.Number &&
+                                 toneConfidenceElement.TryGetDouble(out var parsedConfidence)
+                ? parsedConfidence
+                : (double?)null;
+            var latencyMs = document.RootElement.TryGetProperty("latencyMs", out var latencyElement) &&
+                            latencyElement.ValueKind == JsonValueKind.Number &&
+                            latencyElement.TryGetInt32(out var parsedLatency)
+                ? parsedLatency
+                : (int?)null;
             if (lines.Length > 0)
             {
                 text = string.Join(Environment.NewLine, lines);
             }
-            if (participants.Length > 0 && !text.Contains("Participants detected:", StringComparison.OrdinalIgnoreCase))
+            var metaParts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(speaker))
             {
-                var participantLine = $"Participants detected: {string.Join(", ", participants)}";
-                text = string.IsNullOrWhiteSpace(text)
-                    ? participantLine
-                    : $"{participantLine}{Environment.NewLine}{Environment.NewLine}{text}";
+                metaParts.Add(speakerSimilarity.HasValue
+                    ? $"Speaker: {speaker} ({speakerSimilarity.Value:0.00})"
+                    : $"Speaker: {speaker}");
             }
-            UpdateCaptionDisplays(FormatCaptionStatus(status), text);
+
+            if (!string.IsNullOrWhiteSpace(tone))
+            {
+                metaParts.Add(toneConfidence.HasValue
+                    ? $"Tone: {tone} ({toneConfidence.Value:0.00})"
+                    : $"Tone: {tone}");
+            }
+
+            if (latencyMs.HasValue)
+            {
+                metaParts.Add($"Latency: {latencyMs.Value} ms");
+            }
+
+            if (participants.Length > 0)
+            {
+                metaParts.Add($"Participants: {string.Join(", ", participants)}");
+            }
+
+            UpdateCaptionDisplays(
+                FormatCaptionStatus(status),
+                text,
+                metaParts.Count == 0
+                    ? "Participant hints and caption source details will appear here."
+                    : string.Join(" | ", metaParts));
         }
         catch (Exception error)
         {
             ShellDiagnostics.Log("Unable to refresh live captions.", error);
         }
+    }
+
+    private static string? TryReadSharedText(string path, int attempts = 4, int delayMs = 30)
+    {
+        for (var attempt = 0; attempt < attempts; attempt++)
+        {
+            try
+            {
+                using var stream = new FileStream(
+                    path,
+                    FileMode.Open,
+                    FileAccess.Read,
+                    FileShare.ReadWrite | FileShare.Delete);
+                using var reader = new StreamReader(stream);
+                return reader.ReadToEnd();
+            }
+            catch (IOException) when (attempt < attempts - 1)
+            {
+                Thread.Sleep(delayMs);
+            }
+        }
+
+        return null;
     }
 
     private static string FormatCaptionStatus(string status)
@@ -933,7 +1007,7 @@ public sealed class RecorderApplicationContext : ApplicationContext
         }
 
         var embeddedMode = !_settings.Dashboard.ShowEmbeddedWorkspaceHeaders;
-        _actionItemsForm = new ActionItemsForm(_meetingsRepository, ReprocessSession, embedded: embeddedMode);
+            _actionItemsForm = new ActionItemsForm(_meetingsRepository, _companionCliClient, ReprocessSession, embedded: embeddedMode);
         _widget.AttachActionItemsForm(_actionItemsForm);
     }
 
@@ -943,12 +1017,15 @@ public sealed class RecorderApplicationContext : ApplicationContext
         _actionItemsForm?.RefreshSessions();
     }
 
-    private void UpdateCaptionDisplays(string status, string text)
+    private void UpdateCaptionDisplays(string status, string text, string? meta = null)
     {
         _lastCaptionStatus = string.IsNullOrWhiteSpace(status) ? "Live captions" : status;
+        _lastCaptionMeta = string.IsNullOrWhiteSpace(meta)
+            ? "Participant hints and caption source details will appear here."
+            : meta.Trim();
         _lastCaptionText = string.IsNullOrWhiteSpace(text) ? "Listening for speech..." : text;
-        _widget.UpdateCaptions(_lastCaptionStatus, _lastCaptionText);
-        _liveCaptionsForm?.UpdateCaptions(_lastCaptionStatus, _lastCaptionText);
+        _widget.UpdateCaptions(_lastCaptionStatus, _lastCaptionText, _lastCaptionMeta);
+        _liveCaptionsForm?.UpdateCaptions(_lastCaptionStatus, _lastCaptionText, _lastCaptionMeta);
     }
 
     private void RunOnUiThread(Action action)
